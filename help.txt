@@ -1,0 +1,161 @@
+[https://www.digitalocean.com/community/tutorials/setting-up-a-node-project-with-typescript-pt]
+
+Como configurar um projeto de nó com o Typescript
+
+Pré-requisitos
+Antes de iniciar este guia, é necessário possuir o Node.js instalado em sua máquina. Você pode fazer isso seguindo o guia Como instalar o Node.js e criar um ambiente de desenvolvimento local para seu sistema operacional.
+
+Passo 1 — Inicializando um projeto npm
+Para começar, crie uma nova pasta chamada node_project e vá até esse diretório.
+
+mkdir node_project
+cd node_project
+
+
+Em seguida, inicialize-o como um projeto npm:
+
+npm init
+Depois de executar o npm init, será necessário fornecer informações sobre o seu projeto ao npm. Caso prefira deixar que o npm assuma padrões sensatos, adicione o sinalizador y para ignorar os prompts para obter informações adicionais:
+
+npm init -y
+Agora que seu espaço de projeto está configurado, podemos seguir para a instalação das dependências necessárias.
+
+Passo 2 — Instalando as dependências
+Com um projeto básico do npm inicializado, o próximo passo é instalar as dependências que são necessárias para executar o TypeScript.
+
+Execute os seguintes comandos a partir do diretório do seu projeto para instalar as dependências:
+
+npm install -D typescript@3.3.3
+npm install -D tslint@5.12.1
+O sinalizador -D é o atalho para: --save-dev. Aprenda mais sobre esse sinalizador na documentação do npmjs.
+
+Agora, é hora de instalar o framework Express:
+
+npm install -S express@4.16.4
+npm install -D @types/express@4.16.1
+O segundo comando instala os tipos do Express para o suporte do TypeScript. Os tipos no TypeScript são arquivos, normalmente com uma extensão .d.ts. Os arquivos são usados para fornecer informações de tipo sobre uma API, neste caso, o framework Express.
+
+Este pacote é necessário porque o TypeScript e o Express são pacotes independentes. Sem o pacote @types/express, o TypeScript não é capaz de saber sobre os tipos das classes do Express.
+
+Passo 3 — Configurando o TypeScript
+Nesta seção, você irá configurar o TypeScript e configurar uma função de linting para ele. O TypeScript usa um arquivo chamado tsconfig.json para configurar as opções do compilador para um projeto. Crie um arquivo tsconfig.json na raiz do diretório do projeto e adicione o seguinte trecho de código:
+
+tsconfig.json
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es6",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist"
+  },
+  "lib": ["es2015"]
+}
+Vamos rever algumas das chaves presentes no código JSON acima:
+
+module: define o método de geração de código do módulo. O Node usa o commonjs.
+target: especifica o nível de linguagem de saída.
+moduleResolution: isso ajuda o compilador a descobrir a que uma importação se refere. O valor node imita o mecanismo de resolução de módulo do Node.
+outDir: essa é a localização onde serão gerados os arquivos .js após a transcompilação. Neste tutorial, você irá salvá-lo como dist.
+Ao invés de criar e preencher manualmente o arquivo tsconfig.json, uma alternativa é executar o comando a seguir:
+
+tsc --init
+Esse comando irá gerar um arquivo tsconfig.json comentado de maneira satisfatória.
+
+Para aprender mais sobre as opções de valor chave disponíveis, a documentação oficial do TypeScript oferece explicações de todas as opções.
+
+Agora, configure o linting do TypeScript para o projeto. Em um terminal em execução na raiz do diretório do seu projeto, que este tutorial estabeleceu como sendo node_project, execute o comando a seguir para gerar um arquivo tslint.json:
+
+./node_modules/.bin/tslint --init
+Abra o arquivo tslint.json recém-gerado e adicione a regra no-console adequadamente:
+
+tslint.json
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "no-console": false
+  },
+  "rulesDirectory": []
+}
+Por padrão, o linter do TypeScript impede a depuração usando declarações de console. Dessa forma, é necessário dizer explicitamente ao linter para revogar a regra no-console padrão.
+
+Passo 4 — Atualizando o arquivo package.json
+Neste ponto do tutorial, é possível executar funções no terminal individualmente, ou criar um script npm para executá-las.
+
+Neste passo, você criará um script start que irá compilar e transcompilar o código TypeScript e então executar o aplicativo .js resultante.
+
+Abra o arquivo package.json e atualize-o adequadamente:
+
+package.json
+{
+  "name": "node-with-ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "tsc && node dist/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.16.1",
+    "tslint": "^5.12.1",
+    "typescript": "^3.3.3"
+  },
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
+No código acima, você atualizou o caminho main e adicionou o comando start à seção de scripts. Se observar o comando start, você verá que primeiro o comando tsc é executado e, em seguida, o comando node. Isso irá compilar e então executar a saída gerada com o node.
+
+O comando tsc diz ao TypeScript para compilar o aplicativo e colocar a saída .js gerada no diretório outDir especificado, da forma como está definido no arquivo tsconfig.json.
+
+Passo 5 — Criando e executando um servidor básico do Express
+Agora que o TypeScript e seu linter estão configurados, é hora de construir um servidor do Node Express.
+
+Primeiro, crie uma pasta src na raiz do diretório do seu projeto:
+
+mkdir src
+Em seguida, crie um arquivo chamado app.ts dentro dela:
+
+touch src/app.ts
+Neste ponto, a estrutura da pasta deve se parecer com esta:
+
+├── node_modules/
+├── src/
+  ├── app.ts
+├── package-lock.json
+├── package.json
+├── tsconfig.json
+├── tslint.json
+Abra o arquivo app.ts com um editor de texto da sua escolha e adicione o trecho de código a seguir:
+
+src/app.ts
+import express from 'express';
+
+const app = express();
+const port = 3000;
+app.get('/', (req, res) => {
+  res.send('The sedulous hyena ate the antelope!');
+});
+app.listen(port, err => {
+  if (err) {
+    return console.error(err);
+  }
+  return console.log(`server is listening on ${port}`);
+});
+O código acima cria um servidor Node que escuta na porta 3000 para solicitações. Execute o aplicativo usando o comando a seguir:
+
+npm start
+Se ele for executado com sucesso, uma mensagem será registrada no terminal:
+
+Output
+server is listening on 3000
+Agora, visite http://localhost:3000 em seu navegador e você verá esta mensagem:
+
+Output
+The sedulous hyena ate the antelope!
